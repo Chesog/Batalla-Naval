@@ -1,37 +1,69 @@
 ﻿#include <iostream>
 #include <Windows.h>
+#include <time.h>
 #include <conio.h>
 
 using namespace std;
-// ------------------------------------------ Declaracion de Funciones ---------------------------------------
-int pointer(int maxOption, int minOption);
-int showMenu(int mainMenu);
-void showPrincipalBoard(int turn);
-void showShotBoard(int turn);
-int gameplay(bool newGame);
-bool resetBoards();
-bool setBoardShips();
 
-HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE);
 
-COORD consolecursorposition = { 48,1 }; // posicion del cursor en pantalla
-int pointerCursor = 0;
-int totalShipsP1 = 10;
-int totalShipsP2 = 10;
-const int maxBoardSize = 10;
+//------------------------------------------- Declaracion de Funciones ------------------------------
 
-int player1PrincipalBoard[maxBoardSize][maxBoardSize];
-int player2PrincipalBoard[maxBoardSize][maxBoardSize];
-bool player1ShotBoard[maxBoardSize][maxBoardSize];
-bool player2ShotBoard[maxBoardSize][maxBoardSize];
+HANDLE h = GetStdHandle(STD_OUTPUT_HANDLE); // funcion para los colores
+COORD consolecursorposition = { 20,10 }; // posicion del cursor en pantalla
+enum class MenuScenes { MainMenu, Gameplay, Options, Credits, Exit }; // escenas del menu
 
+
+int showMenu(int mainMenu);					// Muestra el Menu Principal
+int gameplay();								// Muestra el Gameplay
+int showCredits();							// Muestra los Creditos
+int showOptions();							// Muestra el Menu de Opciones
+int showRules();							// Muestra las Reglas
+int pointer(int maxOption, int minOption);	// puntero para la seleccion
+bool exitProgram();							// Muestra el  salir del juego
+bool easyMode();							// Modo facil
+bool mediumMode();							// Modo Normal
+bool hardMode();							// Modo Dificil
+bool boardPointer(int maxBoardSize);		// Puntero para el gameplay
+void boardReset();							// Reseteo del tablero
+void mixCards(int cant);					// Randomisa las cartas
+
+//------------------------------------------ Declaracion de Variables ---------------------------------
+
+int pointerCursor = 0;								// Cursor para la seleccion de opciones
+int pointerCursorX = 0;								// Cursor en X para el gameplay
+int pointerCursorY = 0;								// Cursor en Y para el gameplay
+int playerTrys = 0;									// Intentos del Jugador
+int playerPoints = 0;								// Puntos del Jugador
+int amountOfNumbers = 40;							// numero total de pares
+const int easyModeRows = 4;							// Filas para el modo facil
+const int easyModeColumns = 4;						// Columnas para el modo facil
+const int mediumModeRows = 6;						// Filas para el modo normal
+const int mediumModeColumns = 6;					// Columnas para el modo normal
+const int hardModeRows = 9;							// Filas para el modo dificil
+const int hardModeColumns = 9;						// Columnas para el modo dificil
+
+bool showCards = false;								// Variable para revelar las cartas
+bool win = true;									// Chequeo de si el player gano
+
+bool checkBoard[hardModeRows][hardModeColumns];		// Chequeo para el array de las cartas
+int cardsBoard[easyModeRows][easyModeColumns];		// tablero para las cartas
+
+struct Selection
+{
+	int posX;
+	int posY;
+};
+
+//------------------------------------------ Inicia el Programa ----------------------------------------
 void main()
 {
 	ShowWindow(GetConsoleWindow(), SW_MAXIMIZE);
-	enum class MenuScenes { MainMenu, Gameplay, Options, Credits, Exit };
+	//setlocale(LC_ALL, "spanish");
+	SetConsoleTitle((L"Memo Test"));
+
 	int menuAnsw = 0;
-	bool ProgramOn = true;
-	bool newGame = true;
+	bool programOn = true;
+
 	do
 	{
 		switch (menuAnsw)
@@ -40,56 +72,235 @@ void main()
 			menuAnsw = showMenu(menuAnsw);
 			break;
 		case (int)MenuScenes::Gameplay:
-			system("cls");
-			newGame = true;
-			menuAnsw = gameplay(newGame);
+			menuAnsw = gameplay();
 			break;
 		case (int)MenuScenes::Options:
-			system("cls");
-			cout << "Opciones" << endl;
-			system("pause");
-			menuAnsw = (int)MenuScenes::MainMenu;
+			menuAnsw = showOptions();
 			break;
 		case (int)MenuScenes::Credits:
-			system("cls");
-			cout << "Creditos" << endl;
-			system("pause");
-			menuAnsw = (int)MenuScenes::MainMenu;
+			menuAnsw = showCredits();
 			break;
 		case (int)MenuScenes::Exit:
-			SetConsoleTextAttribute(h, 12);
-			system("cls");
-			cout << R"(								 ____ ____ ____ _________ ____ ____ ____ ____ ____ 
-								||N |||o |||s |||       |||V |||e |||m |||o |||s ||
-								||__|||__|||__|||_______|||__|||__|||__|||__|||__||
-								|/__\|/__\|/__\|/_______\|/__\|/__\|/__\|/__\|/__\|)" << endl;
-			system("pause");
-			ProgramOn = false;
+			programOn = exitProgram();
 			break;
 		default:
 			break;
 		}
-	} while (ProgramOn);
-
-
+	} while (programOn);
 }
-int gameplay(bool newGame) // funcion que contiene el juego
+void boardReset()
 {
-	int userAnsw;
-	int backToMainMenu = 0;
-	int plyVsCpu = 1;
-	int plyVsPly = 2;
-	int turn = 0;
-	bool newGameGamplay = newGame;
-	bool fase1Player1 = true;
-	bool fase1Player2 = true;
-	bool continuePlaying = true;
+	int defaultValue = 0;
+	memset(cardsBoard, defaultValue, hardModeRows);
+	memset(checkBoard, defaultValue, hardModeColumns);
+	playerPoints = defaultValue;
+	playerTrys = defaultValue;
+}
+void mixCards(int cant)
+{
+	int auxRows;
+	int auxColums;
+
 	do
 	{
-		if (newGame)
+		auxRows = rand() % easyModeRows;
+		auxColums = rand() % easyModeColumns;
+
+		if (cardsBoard[auxRows][auxColums] == 0)
 		{
-			newGameGamplay = resetBoards();
+			if (cant <= amountOfNumbers)
+			{
+				cardsBoard[auxRows][auxColums] = cant;
+			}
+			break;
 		}
+
+	} while (cardsBoard[auxRows][auxColums] != 0);
+
+}
+void showBoard(int maxRows, int maxColumns)
+{
+	char cardBack = 177;	// dorso de las cartas
+	char cros = 88;		// valor "X" en el tablero
+	char circle = 79;	// valor "O" en el tablero
+
+	char uperLeftCorner = 201; // esquina superior izquierda ╔
+	char uperRightCorner = 187; // esquina superior derecha ╗
+	char lowerLeftCorner = 200; // esquina inferior izquierda ╚
+	char lowerRightCorner = 188; // esquina inferior Derecha ╝
+	char horizontalRow = 205;	// linea horizontal ═
+	char verticalColumn = 186; // linea vertical ║
+	char uperConection = 203; // conector superior ╦
+	char lowerConection = 202; // conector inferior ╩
+	char horizontalConection = 185; // conector derecho ╣
+	char verticalConection = 204; // conector izquierdo ╠
+	char crosConection = 206; // interseccion ╬
+
+	SetConsoleTextAttribute(h, 11);
+	cout << "\t""\t""\t""\t""\t""\t""\t""\t" << uperLeftCorner;
+	for (int i = 0; i < maxRows; i++)
+	{
+		cout << horizontalRow << horizontalRow << horizontalRow << uperConection;
+	}
+	cout << "\b" << uperRightCorner;
+	cout << endl;
+	for (int rows = 0; rows < maxRows; rows++)
+	{
+		cout << "\t""\t""\t""\t""\t""\t""\t""\t";
+		for (int columns = 0; columns < maxColumns; columns++)
+		{
+			if (checkBoard[rows][columns] == false)
+			{
+				cout << verticalColumn;
+				SetConsoleTextAttribute(h, 10);
+				if (pointerCursorX == columns && pointerCursorY == rows)
+				{
+					SetConsoleTextAttribute(h, 13);
+				}
+				cout << " " << cardBack << " ";
+				SetConsoleTextAttribute(h, 11);
+			}
+			else if (checkBoard[rows][columns] == true)
+			{
+				cout << verticalColumn;
+				SetConsoleTextAttribute(h, 3);
+				if (pointerCursorX == columns && pointerCursorY == rows)
+				{
+					SetConsoleTextAttribute(h, 13);
+				}
+				cout << " " << cardsBoard[rows][columns] << " ";
+				SetConsoleTextAttribute(h, 11);
+			}
+		}
+		cout << verticalColumn;
+		cout << endl;
+
+		if (rows != maxRows - 1)
+		{
+			cout << "\t""\t""\t""\t""\t""\t""\t""\t" << verticalConection;
+			for (int i = 0; i < maxRows; i++)
+			{
+				cout << horizontalRow << horizontalRow << horizontalRow << crosConection;
+			}
+			cout << "\b" << horizontalConection;
+			cout << endl;
+		}
+	}
+	cout << "\t""\t""\t""\t""\t""\t""\t""\t" << lowerLeftCorner;
+	for (int i = 0; i < maxRows; i++)
+	{
+		cout << horizontalRow << horizontalRow << horizontalRow << lowerConection;
+	}
+	cout << "\b" << lowerRightCorner;
+	cout << endl;
+
+}
+
+int showMenu(int mainMenu)
+{
+	system("cls");
+	int mainMenuAnsw = mainMenu;
+	int play = 1;
+	int Options = 2;
+	int credits = 3;
+	int exitMenu = 4;
+
+
+
+	SetConsoleTextAttribute(h, 160);
+	cout << R"(
+					.___  ___.  _______ .___  ___.   ______      .___________. _______      _______..___________.
+					|   \/   | |   ____||   \/   |  /  __  \     |           ||   ____|    /       ||           |
+					|  \  /  | |  |__   |  \  /  | |  |  |  |    `---|  |----`|  |__      |   (----``---|  |----`
+					|  |\/|  | |   __|  |  |\/|  | |  |  |  |        |  |     |   __|      \   \        |  |     
+					|  |  |  | |  |____ |  |  |  | |  `--'  |        |  |     |  |____ .----)   |       |  |     
+					|__|  |__| |_______||__|  |__|  \______/         |__|     |_______||_______/        |__|     )" << endl;
+	cout << endl;
+	SetConsoleTextAttribute(h, 9);
+	SetConsoleTextAttribute(h, 11);
+	if (pointerCursor == play)
+	{
+		SetConsoleTextAttribute(h, 144);
+	}
+	consolecursorposition = { 80,13 };
+	SetConsoleCursorPosition(h, consolecursorposition);
+	cout << ".-------." << endl;
+	consolecursorposition = { 80,14 };
+	SetConsoleCursorPosition(h, consolecursorposition);
+	cout << "| Jugar |" << endl;
+	consolecursorposition = { 80,15 };
+	SetConsoleCursorPosition(h, consolecursorposition);
+	cout << "'-------'" << endl;
+	cout << endl;
+	SetConsoleTextAttribute(h, 11);
+	if (pointerCursor == Options)
+	{
+		SetConsoleTextAttribute(h, 144);
+	}
+	consolecursorposition = { 80,17 };
+	SetConsoleCursorPosition(h, consolecursorposition);
+	cout << ".----------." << endl;
+	consolecursorposition = { 80,18 };
+	SetConsoleCursorPosition(h, consolecursorposition);
+	cout << "| Opciones |" << endl;
+	consolecursorposition = { 80,19 };
+	SetConsoleCursorPosition(h, consolecursorposition);
+	cout << "'----------'" << endl;
+	cout << endl;
+	SetConsoleTextAttribute(h, 11);
+	if (pointerCursor == credits)
+	{
+		SetConsoleTextAttribute(h, 144);
+	}
+	consolecursorposition = { 80,21 };
+	SetConsoleCursorPosition(h, consolecursorposition);
+	cout << ".----------." << endl;
+	consolecursorposition = { 80,22 };
+	SetConsoleCursorPosition(h, consolecursorposition);
+	cout << "| Creditos |" << endl;
+	consolecursorposition = { 80,23 };
+	SetConsoleCursorPosition(h, consolecursorposition);
+	cout << "'----------'" << endl;
+	cout << endl;
+	SetConsoleTextAttribute(h, 11);
+	if (pointerCursor == exitMenu)
+	{
+		SetConsoleTextAttribute(h, 144);
+	}
+	consolecursorposition = { 80,25 };
+	SetConsoleCursorPosition(h, consolecursorposition);
+	cout << ".-------." << endl;
+	consolecursorposition = { 80,26 };
+	SetConsoleCursorPosition(h, consolecursorposition);
+	cout << "| Salir |" << endl;
+	consolecursorposition = { 80,27 };
+	SetConsoleCursorPosition(h, consolecursorposition);
+	cout << "'-------'" << endl;
+	cout << endl;
+	SetConsoleTextAttribute(h, 11);
+	SetConsoleTextAttribute(h, 9);
+	cout << "\t""Usar W para subir" << endl;
+	cout << "\t""Usar S para bajar" << endl;
+	cout << "\t""Usar E para selecionar" << endl;
+
+	mainMenuAnsw = pointer(exitMenu, play);
+	return mainMenuAnsw;
+}
+int gameplay()
+{
+	int userAnsw;
+	int defaultValue = 0;
+	int easyDificulty = 1;
+	int mediumDificulty = 2;
+	int hardDificulty = 3;
+	int backToMainMenu = 4;
+	int turn = 0;
+	bool continuePlaying = true;
+
+	boardReset();  // resetea el tablero
+
+	do
+	{
 		system("cls");
 		SetConsoleTextAttribute(h, 11);
 		cout << R"(					 ____  ____  ____  ____  _________  ____  ____  _________  ____  ____  ____  ____  ____ 
@@ -98,111 +309,171 @@ int gameplay(bool newGame) // funcion que contiene el juego
 					|/__\||/__\||/__\||/__\||/_______\||/__\||/__\||/_______\||/__\||/__\||/__\||/__\||/__\|)" << endl;
 		SetConsoleTextAttribute(h, 9);
 		cout << endl;
-		if (pointerCursor == plyVsCpu)
+		if (pointerCursor == easyDificulty)
 		{
 			SetConsoleTextAttribute(h, 144);
 		}
-		cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t"".---------------." << endl;
-		cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""| Player vs CPU |" << endl;
-		cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""'---------------'" << endl;
+		cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""\b""\b""\b"".-------." << endl;
+		cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""\b""\b""\b""| Facil |" << endl;
+		cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""\b""\b""\b""'-------'" << endl;
 		cout << endl;
 		SetConsoleTextAttribute(h, 9);
-		if (pointerCursor == plyVsPly)
+		if (pointerCursor == mediumDificulty)
 		{
 			SetConsoleTextAttribute(h, 144);
 		}
-		cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""\b"".------------------." << endl;
-		cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""\b""| Player vs Player |" << endl;
-		cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""\b""'------------------'" << endl;
+		cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""\b""\b""\b"".--------." << endl;
+		cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""\b""\b""\b""| Normal |" << endl;
+		cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""\b""\b""\b""'--------'" << endl;
 		cout << endl;
 		SetConsoleTextAttribute(h, 9);
-		userAnsw = pointer(plyVsPly, plyVsCpu);
-		if (userAnsw == plyVsCpu)
+		if (pointerCursor == hardDificulty)
 		{
-			system("cls");
-			cout << "Player vs CPU" << endl;
+			SetConsoleTextAttribute(h, 144);
+		}
+		cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""\b""\b""\b"".---------." << endl;
+		cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""\b""\b""\b""| Dificil |" << endl;
+		cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""\b""\b""\b""'---------'" << endl;
+		cout << endl;
+		SetConsoleTextAttribute(h, 9);
+		if (pointerCursor == backToMainMenu)
+		{
+			SetConsoleTextAttribute(h, 144);
+		}
+		cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""\b""\b""\b"".-------------------." << endl;
+		cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""\b""\b""\b""| Back to Main Menu |" << endl;
+		cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""\b""\b""\b""'-------------------'" << endl;
+		cout << endl;
+		SetConsoleTextAttribute(h, 9);
+		consolecursorposition = { 20,6 };
+		SetConsoleCursorPosition(h, consolecursorposition);
+		cout << "\t""Usar W para subir" << endl;
+		consolecursorposition = { 20,7 };
+		SetConsoleCursorPosition(h, consolecursorposition);
+		cout << "\t""Usar S para bajar" << endl;
+		consolecursorposition = { 20,8 };
+		SetConsoleCursorPosition(h, consolecursorposition);
+		cout << "\t""Usar E para selecionar" << endl;
+		userAnsw = pointer(backToMainMenu, easyDificulty);
+		if (userAnsw == easyDificulty)
+		{
+			continuePlaying = easyMode();
+		}
+		else if (userAnsw == mediumDificulty)
+		{
+			continuePlaying = mediumMode();
+		}
+		else if (userAnsw == hardDificulty)
+		{
+			continuePlaying = hardMode();
+		}
+		else  if (userAnsw == backToMainMenu)
+		{
 			continuePlaying = false;
-			system("pause");
-		}
-		else if (userAnsw == plyVsPly)
-		{
-			system("cls");
-			do
-			{
-				//cout << "Player vs Player" << endl;
-				showPrincipalBoard(turn);
-				fase1Player1 =  setBoardShips();
-				system("cls");
-			} while (fase1Player1);
-			
-			system("pause");
 		}
 	} while (continuePlaying);
-	pointerCursor = backToMainMenu;
-	return backToMainMenu;
+	pointerCursor = defaultValue;
+	return defaultValue;
 }
-int showMenu(int mainMenu) // funcion para mostrar el menu principal
+int showOptions()
 {
 	system("cls");
-	int mainMenuAnsw = mainMenu;
-	int play = 1;
-	int options = 2;
-	int credits = 3;
-	int exitMenu = 4;
-	SetConsoleTextAttribute(h, 9);
-	cout << R"(                         @@@@@@@    @@@@@@   @@@@@@@   @@@@@@   @@@       @@@        @@@@@@      @@@  @@@   @@@@@@   @@@  @@@   @@@@@@   @@@       
-                         @@@@@@@@  @@@@@@@@  @@@@@@@  @@@@@@@@  @@@       @@@       @@@@@@@@     @@@@ @@@  @@@@@@@@  @@@  @@@  @@@@@@@@  @@@       
-                         @@!  @@@  @@!  @@@    @@!    @@!  @@@  @@!       @@!       @@!  @@@     @@!@!@@@  @@!  @@@  @@!  @@@  @@!  @@@  @@!       
-                         !@   @!@  !@!  @!@    !@!    !@!  @!@  !@!       !@!       !@!  @!@     !@!!@!@!  !@!  @!@  !@!  @!@  !@!  @!@  !@!       
-                         @!@!@!@   @!@!@!@!    @!!    @!@!@!@!  @!!       @!!       @!@!@!@!     @!@ !!@!  @!@!@!@!  @!@  !@!  @!@!@!@!  @!!       
-                         !!!@!!!!  !!!@!!!!    !!!    !!!@!!!!  !!!       !!!       !!!@!!!!     !@!  !!!  !!!@!!!!  !@!  !!!  !!!@!!!!  !!!       
-                         !!:  !!!  !!:  !!!    !!:    !!:  !!!  !!:       !!:       !!:  !!!     !!:  !!!  !!:  !!!  :!:  !!:  !!:  !!!  !!:       
-                         :!:  !:!  :!:  !:!    :!:    :!:  !:!   :!:       :!:      :!:  !:!     :!:  !:!  :!:  !:!   ::!!:!   :!:  !:!   :!:      
-                          :: ::::  ::   :::     ::    ::   :::   :: ::::   :: ::::  ::   :::      ::   ::  ::   :::    ::::    ::   :::   :: ::::  
-                         :: : ::    :   : :     :      :   : :  : :: : :  : :: : :   :   : :     ::    :    :   : :     :       :   : :  : :: : :  
-                                                                                                                         )" << endl;
-	cout << endl;
-	SetConsoleTextAttribute(h, 11);
-	if (pointerCursor == play)
-	{
-		SetConsoleTextAttribute(h, 144);
-	}
-	cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t"".-------." << endl;
-	cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""| Jugar |" << endl;
-	cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""'-------'" << endl;
-	cout << endl;
-	SetConsoleTextAttribute(h, 11);
-	if (pointerCursor == options)
-	{
-		SetConsoleTextAttribute(h, 144);
-	}
-	cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""\b"".----------." << endl;
-	cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""\b""| Opciones |" << endl;
-	cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""\b""'----------'" << endl;
-	cout << endl;
-	SetConsoleTextAttribute(h, 11);
-	if (pointerCursor == credits)
-	{
-		SetConsoleTextAttribute(h, 144);
-	}
-	cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""\b"".----------." << endl;
-	cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""\b""| Creditos |" << endl;
-	cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""\b""'----------'" << endl;
-	cout << endl;
-	SetConsoleTextAttribute(h, 11);
-	if (pointerCursor == exitMenu)
-	{
-		SetConsoleTextAttribute(h, 144);
-	}
-	cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t"".-------." << endl;
-	cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""| Salir |" << endl;
-	cout << "\t""\t""\t""\t""\t""\t""\t""\t""\t""\t""'-------'" << endl;
-	cout << endl;
-	SetConsoleTextAttribute(h, 11);
-	mainMenuAnsw = pointer(exitMenu, play);
-	return mainMenuAnsw;
+	SetConsoleTextAttribute(h, 14);
+	int backToMainMenu = 0;
+	system("pause");
+	return backToMainMenu;
 }
-int pointer(int maxOption, int minOption)
+int showRules()
+{
+	SetConsoleTextAttribute(h, 13);
+	int backToMainMenu = 0;
+	system("cls");
+	cout << R"( 
+												 _______  _______  _______  _        _______  _______ 
+												(  ____ )(  ____ \(  ____ \( \      (  ___  )(  ____ \
+												| (    )|| (    \/| (    \/| (      | (   ) || (    \/
+												| (____)|| (__    | |      | |      | (___) || (_____ 
+												|     __)|  __)   | | ____ | |      |  ___  |(_____  )
+												| (\ (   | (      | | \_  )| |      | (   ) |      ) |
+												| ) \ \__| (____/\| (___) || (____/\| )   ( |/\____) |
+												|/   \__/(_______/(_______)(_______/|/     \|\_______)
+								                                                      )" << endl;
+	SetConsoleTextAttribute(h, 9);
+	cout << R"(
+	Este juego consiste en 3 o 4 jugadores que deben recorrer un tablero conformado por casillas con el objetivo de conseguir la mayor cantidad de monedas al pasar 5 vueltas al tablero.
+
+	Todos los jugadores empezarán el juego con 0 monedas y éste será también el valor mínimo de monedas posibles
+
+	Para moverse los jugadores tienen que tirar un dado de seis caras que determina cuántas casillas van a avanzar.
+
+	A lo largo del juego los jugadores pueden caer en X tipos de casillas que tendrán una consecuencia distinta.
+	
+	----------------casillas-------------------
+	
+	 ° casilla vacía = no hay consecuencias
+	
+	 ° casilla Cazado = El cazador pensara un número del 1 a 3, si el jugador acierta el numero se le dará la cantidad de monedas que pensó 
+
+		el cazador pero si no acierta el cazador lo hara retroceder la cantidad de números que pensó.
+	
+	 ° casilla Cazador = el jugador que cae en la casilla tiene la posibilidad de elegir a qué jugador quiere disparar, 
+
+		al tirar un dado este determina cuántas casillas tendrá que retroceder el jugador seleccionado
+	
+	 ° casilla minijuego = En esta casilla se tendrá que jugar a un minijuego. Este minijuego consiste en adivinar en donde se esconde la tortuga,
+
+		 ésta se esconderá en uno de los 6 lugares que se podrán elegir si el jugador acierta se le sumará 3 monedas y si pierde se le restara 3.
+	
+	 ° casilla Lanza otra vez = En esta casilla el jugador puede volver a lanzar un dado.
+	
+	 ° Casillas puntos = al jugador se le dará una cantidad aleatoria entre 1 y 5 de monedas.
+	
+)" << endl;
+	system("pause");
+	return backToMainMenu;
+}
+int showCredits()
+{
+	int backToMainMenu = 0;
+	system("cls");
+	SetConsoleTextAttribute(h, 14);
+	cout << R"(
+									  ____                                        _   _               _                             
+									 |  _ \    ___   ___    __ _   _ __    ___   | | | |   __ _    __| |   ___    _ __    ___   ___ 
+									 | | | |  / _ \ / __|  / _` | | '__|  / _ \  | | | |  / _` |  / _` |  / _ \  | '__|  / _ \ / __|
+									 | |_| | |  __/ \__ \ | (_| | | |    | (_) | | | | | | (_| | | (_| | | (_) | | |    |  __/ \__ \
+									 |____/   \___| |___/  \__,_| |_|     \___/  |_| |_|  \__,_|  \__,_|  \___/  |_|     \___| |___/
+																																		)" << endl;
+	SetConsoleTextAttribute(h, 3);
+	cout << endl;
+	cout << "\t""\t""\t""\t""\t""\t"".------------------." << endl;
+	cout << "\t""\t""\t""\t""\t""\t""| Ignacio Arrastua |" << endl;
+	cout << "\t""\t""\t""\t""\t""\t""'------------------'" << endl;
+	cout << endl;
+	cout << "\t""\t""\t""\t""\t""\t"".----------------." << endl;
+	cout << "\t""\t""\t""\t""\t""\t""| Santiago Barra |" << endl;
+	cout << "\t""\t""\t""\t""\t""\t""'----------------'" << endl;
+	cout << endl;
+	cout << "\t""\t""\t""\t""\t""\t"".---------------." << endl;
+	cout << "\t""\t""\t""\t""\t""\t""| Dario Otranto |" << endl;
+	cout << "\t""\t""\t""\t""\t""\t""'---------------'" << endl;
+	cout << endl;
+	cout << "\t""\t""\t""\t""\t""\t"".-------------." << endl;
+	cout << "\t""\t""\t""\t""\t""\t""| Enzo Coleta |" << endl;
+	cout << "\t""\t""\t""\t""\t""\t""'-------------'" << endl;
+	cout << endl;
+	cout << "\t""\t""\t""\t""\t""\t"".----------------." << endl;
+	cout << "\t""\t""\t""\t""\t""\t""| Facundo Santos |" << endl;
+	cout << "\t""\t""\t""\t""\t""\t""'----------------'" << endl;
+	cout << endl;
+	cout << "\t""\t""\t""\t""\t""\t"".-------------------." << endl;
+	cout << "\t""\t""\t""\t""\t""\t""| Emiliano Cortinez |" << endl;
+	cout << "\t""\t""\t""\t""\t""\t""'-------------------'" << endl;
+	cout << endl;
+	system("pause");
+	return backToMainMenu;
+}
+int pointer(int maxOption, int minOption) // cursor para el menu
 {
 	int defaultOption = 0;
 	int max = maxOption;
@@ -237,233 +508,156 @@ int pointer(int maxOption, int minOption)
 		return defaultOption;
 		break;
 	}
-} // cursor para el menu
-bool resetBoards() // funcion para resetear los tableros
-{
-	int defaultValue = 0; // valor default para los tableros
-	memset(player1PrincipalBoard, defaultValue, maxBoardSize); // resetea el tablero principal del jugador 1
-	memset(player2PrincipalBoard, defaultValue, maxBoardSize); // resetea el tablero principal del jugador 2
-	memset(player1ShotBoard, defaultValue, maxBoardSize); // resetea el tablero de tiro del jugador 1
-	memset(player2ShotBoard, defaultValue, maxBoardSize); // resetea el tablero de tiro del jugador 2
-	return false;
 }
-void showPrincipalBoard(int turn)
+
+bool exitProgram()
 {
-	char uperLeftCorner = 201; // esquina superior izquierda ╔
-	char uperRightCorner = 187; // esquina superior derecha ╗
-	char lowerLeftCorner = 200; // esquina inferior izquierda ╚
-	char lowerRightCorner = 188; // esquina inferior Derecha ╝
-	char horizontalRow = 205;	// linea horizontal ═
-	char verticalColumn = 186; // linea vertical ║
-	char uperConection = 203; // conector superior ╦
-	char lowerConection = 202; // conector inferior ╩
-	char horizontalConection = 185; // conector derecho ╣
-	char verticalConection = 204; // conector izquierdo ╠
-	char crosConection = 206; // interseccion ╬
+	SetConsoleTextAttribute(h, 12);
+	int backToMainMenu = 0;
+	system("cls");
+	cout << R"( 
+					 .----------------.  .----------------.  .----------------.  .----------------.  .----------------.  .-----------------. .----------------.  .----------------. 
+					| .--------------. || .--------------. || .--------------. || .--------------. || .--------------. || .--------------. || .--------------. || .--------------. |
+					| |    _______   | || |      __      | || |   _____      | || |     _____    | || |  _________   | || | ____  _____  | || |  ________    | || |     ____     | |
+					| |   /  ___  |  | || |     /  \     | || |  |_   _|     | || |    |_   _|   | || | |_   ___  |  | || ||_   \|_   _| | || | |_   ___ `.  | || |   .'    `.   | |
+					| |  |  (__ \_|  | || |    / /\ \    | || |    | |       | || |      | |     | || |   | |_  \_|  | || |  |   \ | |   | || |   | |   `. \ | || |  /  .--.  \  | |
+					| |   '.___`-.   | || |   / ____ \   | || |    | |   _   | || |      | |     | || |   |  _|  _   | || |  | |\ \| |   | || |   | |    | | | || |  | |    | |  | |
+					| |  |`\____) |  | || | _/ /    \ \_ | || |   _| |__/ |  | || |     _| |_    | || |  _| |___/ |  | || | _| |_\   |_  | || |  _| |___.' / | || |  \  `--'  /  | |
+					| |  |_______.'  | || ||____|  |____|| || |  |________|  | || |    |_____|   | || | |_________|  | || ||_____|\____| | || | |________.'  | || |   `.____.'   | |
+					| |              | || |              | || |              | || |              | || |              | || |              | || |              | || |              | |
+					| '--------------' || '--------------' || '--------------' || '--------------' || '--------------' || '--------------' || '--------------' || '--------------' |
+					 '----------------'  '----------------'  '----------------'  '----------------'  '----------------'  '----------------'  '----------------'  '----------------' )" << endl;
+	system("Pause");
+	return backToMainMenu;
+}
+bool easyMode()
+{
+	int easyModeTrys = 30;
+	int easyModeSelection = 1;
+	int diferentCards = 8;
+	bool easyModeOn = true;
+	bool winCondition = false;
+	bool firstCardSelected = false;
+	bool secondCardSelected = false;
+	Selection firstCard;
+	Selection SecondCard;
 
-	char empty = 32;	// valor vacio en el tablero
-	char cros = 88;		// valor "X" en el tablero
-	char circle = 79;	// valor "O" en el tablero
-
-	SetConsoleTextAttribute(h, 9);
-	cout << "\t" << uperLeftCorner;
-	for (int i = 0; i < maxBoardSize; i++)
+	for (int i = 1; i <= diferentCards; i++)
 	{
-		cout << horizontalRow << horizontalRow << horizontalRow << uperConection;
+		mixCards(i);
+		mixCards(i);
 	}
-	cout << "\b" << uperRightCorner;
-	cout << endl;
-	for (int rows = 0; rows < maxBoardSize; rows++)
+	system("cls");
+	do
 	{
-		cout << "\t";
-		for (int columns = 0; columns < maxBoardSize; columns++)
-		{
-			if (player1PrincipalBoard[rows][columns] == 1)
-			{
-				cout << verticalColumn;
-				SetConsoleTextAttribute(h, 8);
-				cout << " " << cros << " ";
-				SetConsoleTextAttribute(h, 13);
-			}
-			else if (player1PrincipalBoard[rows][columns] == 2)
-			{
-				cout << verticalColumn;
-				SetConsoleTextAttribute(h, 3);
-				cout << " " << circle << " ";
-				SetConsoleTextAttribute(h, 13);
-			}
-			else
-			{
-				cout << verticalColumn << " " << empty << " ";
-			}
-		}
-		cout << verticalColumn;
+		system("cls");
+		showBoard(easyModeRows, easyModeColumns);
 		cout << endl;
-
-		if (rows != maxBoardSize - 1)
+		if (!firstCardSelected)
 		{
-			cout << "\t" << verticalConection;
-			for (int i = 0; i < maxBoardSize; i++)
+			cout << "\t""\t""\t""\t""Elija la Primera Carta" << endl;
+			firstCardSelected = boardPointer(easyModeColumns);
+			if (firstCardSelected)
 			{
-				cout << horizontalRow << horizontalRow << horizontalRow << crosConection;
+				firstCard.posX = pointerCursorX;
+				firstCard.posY = pointerCursorY;
+				if (checkBoard[firstCard.posY][firstCard.posX] == true)
+				{
+					cout << "\t""\t""\t""\t""Esa carta ya esta Seleccionada" << endl;
+					firstCardSelected = false;
+					system("pause");
+				}
+				else
+				{
+					checkBoard[firstCard.posY][firstCard.posX] = true;
+				}
 			}
-			cout << "\b" << horizontalConection;
-			cout << endl;
 		}
-	}
-	cout << "\t" << lowerLeftCorner;
-	for (int i = 0; i < maxBoardSize; i++)
-	{
-		cout << horizontalRow << horizontalRow << horizontalRow << lowerConection;
-	}
-	cout << "\b" << lowerRightCorner;
-	cout << endl;
+		else if (firstCardSelected && !secondCardSelected)
+		{
+			cout << "\t""\t""\t""\t""Elija la Segunda Carta" << endl;
+			secondCardSelected = boardPointer(easyModeColumns);
+			if (secondCardSelected)
+			{
+				SecondCard.posX = pointerCursorX;
+				SecondCard.posY = pointerCursorY;
+				if (checkBoard[SecondCard.posY][SecondCard.posX] == true)
+				{
+					cout << "\t""\t""\t""\t""Esa carta ya esta Seleccionada" << endl;
+					secondCardSelected = false;
+					system("pause");
+				}
+				else
+				{
+					checkBoard[SecondCard.posY][SecondCard.posX] = true;
+				}
+			}
+		}
+		else
+		{
+
+		}
+	} while (!winCondition);
+	return true;
 }
-void showShotBoard(int turn)
+bool mediumMode()
 {
-	char uperLeftCorner = 201; // esquina superior izquierda ╔
-	char uperRightCorner = 187; // esquina superior derecha ╗
-	char lowerLeftCorner = 200; // esquina inferior izquierda ╚
-	char lowerRightCorner = 188; // esquina inferior Derecha ╝
-	char horizontalRow = 205;	// linea horizontal ═
-	char verticalColumn = 186; // linea vertical ║
-	char uperConection = 203; // conector superior ╦
-	char lowerConection = 202; // conector inferior ╩
-	char horizontalConection = 185; // conector derecho ╣
-	char verticalConection = 204; // conector izquierdo ╠
-	char crosConection = 206; // interseccion ╬
-	char squareConection = 219; // conexion entre tableros █
-
-	char empty = 32;	// valor vacio en el tablero
-	char cros = 88;		// valor "X" en el tablero
-	char circle = 79;	// valor "O" en el tablero
-	int maxSpace = 43;
-
-	SetConsoleTextAttribute(h, 3);
-	cout << "\t";
-	cout << "\b""\b" << squareConection << squareConection;
-	for (int i = 0; i < maxSpace; i++)
-	{
-		cout << squareConection;
-	}
-	cout << endl;
-	SetConsoleTextAttribute(h, 9);
-	cout << "\t" << uperLeftCorner;
-	for (int i = 0; i < maxBoardSize; i++)
-	{
-		cout << horizontalRow << horizontalRow << horizontalRow << uperConection;
-	}
-	cout << "\b" << uperRightCorner;
-	cout << endl;
-	for (int rows = 0; rows < maxBoardSize; rows++)
-	{
-		cout << "\t";
-		for (int columns = 0; columns < maxBoardSize; columns++)
-		{
-			if (player1PrincipalBoard[rows][columns] == 1)
-			{
-				cout << verticalColumn;
-				SetConsoleTextAttribute(h, 8);
-				cout << " " << cros << " ";
-				SetConsoleTextAttribute(h, 13);
-			}
-			else if (player1PrincipalBoard[rows][columns] == 2)
-			{
-				cout << verticalColumn;
-				SetConsoleTextAttribute(h, 3);
-				cout << " " << circle << " ";
-				SetConsoleTextAttribute(h, 13);
-			}
-			else
-			{
-				cout << verticalColumn << " " << empty << " ";
-			}
-		}
-		cout << verticalColumn;
-		cout << endl;
-
-		if (rows != maxBoardSize - 1)
-		{
-			cout << "\t" << verticalConection;
-			for (int i = 0; i < maxBoardSize; i++)
-			{
-				cout << horizontalRow << horizontalRow << horizontalRow << crosConection;
-			}
-			cout << "\b" << horizontalConection;
-			cout << endl;
-		}
-	}
-	cout << "\t" << lowerLeftCorner;
-	for (int i = 0; i < maxBoardSize; i++)
-	{
-		cout << horizontalRow << horizontalRow << horizontalRow << lowerConection;
-	}
-	cout << "\b" << lowerRightCorner;
-	cout << endl;
+	return true;
 }
-bool setBoardShips() 
+bool hardMode()
 {
-	enum class Ships {Acorazado = 1,Crucero,Destructor,Submarino};
-
-	cout << "Selecione el barco que quiera usar" << endl;
-	char water = 126;
-	char acorazado = 219;
-	char crucero = 175;
-	char destructor = 223;
-	char submarino = 220;
-	char cros = 88;		// valor "X" en el tablero
-	
-	int shipSelected = 0;
-	int allShipsPlaced = 0;
-
-	//cout << "\t" << water << " = Agua" << endl;
-	//cout << "\t" << cros << " = HIT!" << endl;
-	SetConsoleTextAttribute(h, 11);
-	if (pointerCursor == (int)Ships::Acorazado)
+	return true;
+}
+bool boardPointer(int maxBoardSize)
+{
+	int max = maxBoardSize - 1;
+	int min = 0;
+	char cursor;
+	cursor = _getch();
+	switch (cursor)
 	{
-		SetConsoleTextAttribute(h, 144);
-	}
-	cout << "\t" << " " << acorazado << " = Acorazado 4 casillas" << endl;
-	SetConsoleTextAttribute(h, 11);
-	if (pointerCursor == (int)Ships::Crucero)
-	{
-		SetConsoleTextAttribute(h, 144);
-	}
-	cout << "\t" << " " << crucero << " = Crucero 3 casillas" << endl;
-	SetConsoleTextAttribute(h, 11);
-	if (pointerCursor == (int)Ships::Destructor)
-	{
-		SetConsoleTextAttribute(h, 144);
-	}
-	cout << "\t" << " " << destructor << " = Destructor 2 casillas" << endl;
-	SetConsoleTextAttribute(h, 11);
-	if (pointerCursor == (int)Ships::Submarino)
-	{
-		SetConsoleTextAttribute(h, 144);
-	}
-	cout << "\t" << " " << submarino << " = Submarino 1 casilla" << endl;
-	SetConsoleTextAttribute(h, 11);
-	shipSelected = pointer((int)Ships::Submarino, (int)Ships::Acorazado);
-	switch (shipSelected)
-	{
-	case (int)Ships::Acorazado:
+	case 'W':
+	case 'w':
+		pointerCursorY--;
+		if (pointerCursorY < min)
+		{
+			pointerCursorY = max;
+		}
+		return false;
 		break;
-	case (int)Ships::Crucero:
+	case 'S':
+	case 's':
+		pointerCursorY++;
+		if (pointerCursorY > max)
+		{
+			pointerCursorY = min;
+		}
+		return false;
 		break;
-	case (int)Ships::Destructor:
+	case 'A':
+	case 'a':
+		pointerCursorX--;
+		if (pointerCursorX < min)
+		{
+			pointerCursorX = max;
+		}
+		return false;
 		break;
-	case (int)Ships::Submarino:
+	case 'D':
+	case 'd':
+		pointerCursorX++;
+		if (pointerCursorX > max)
+		{
+			pointerCursorX = min;
+		}
+		return false;
+		break;
+	case 'E':
+	case 'e':
+		return true;
 		break;
 	default:
-		cout << "Error" << endl;
 		break;
 	}
-	if (totalShipsP1 == allShipsPlaced)
-	{
-		return false;
-	}
-	else
-	{
-		return true;
-	}
+
 }
