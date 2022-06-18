@@ -1,16 +1,17 @@
 ﻿  Source.cpp
-D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(59,1): warning C4326: el tipo de valor devuelto de 'main' debe ser 'int' en lugar de 'void'
-D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(123,18): warning C4309: 'inicializando': truncamiento de valor constante
-D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(127,24): warning C4309: 'inicializando': truncamiento de valor constante
-D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(128,25): warning C4309: 'inicializando': truncamiento de valor constante
-D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(129,25): warning C4309: 'inicializando': truncamiento de valor constante
-D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(130,26): warning C4309: 'inicializando': truncamiento de valor constante
-D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(131,23): warning C4309: 'inicializando': truncamiento de valor constante
-D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(132,24): warning C4309: 'inicializando': truncamiento de valor constante
-D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(133,23): warning C4309: 'inicializando': truncamiento de valor constante
-D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(134,24): warning C4309: 'inicializando': truncamiento de valor constante
-D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(135,29): warning C4309: 'inicializando': truncamiento de valor constante
-D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(136,27): warning C4309: 'inicializando': truncamiento de valor constante
-D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(137,23): warning C4309: 'inicializando': truncamiento de valor constante
-D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(663): warning C4715: 'boardPointer': no todas las rutas de acceso de control devuelven un valor
+D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(99,1): warning C4326: el tipo de valor devuelto de 'main' debe ser 'int' en lugar de 'void'
+D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(101,12): warning C4244: 'argumento': conversión de 'time_t' a 'unsigned int'; posible pérdida de datos
+D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(179,18): warning C4309: 'inicializando': truncamiento de valor constante
+D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(183,24): warning C4309: 'inicializando': truncamiento de valor constante
+D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(184,25): warning C4309: 'inicializando': truncamiento de valor constante
+D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(185,25): warning C4309: 'inicializando': truncamiento de valor constante
+D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(186,26): warning C4309: 'inicializando': truncamiento de valor constante
+D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(187,23): warning C4309: 'inicializando': truncamiento de valor constante
+D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(188,24): warning C4309: 'inicializando': truncamiento de valor constante
+D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(189,23): warning C4309: 'inicializando': truncamiento de valor constante
+D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(190,24): warning C4309: 'inicializando': truncamiento de valor constante
+D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(191,29): warning C4309: 'inicializando': truncamiento de valor constante
+D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(192,27): warning C4309: 'inicializando': truncamiento de valor constante
+D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(193,23): warning C4309: 'inicializando': truncamiento de valor constante
+D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\ANALISIS_TM_TP6_OtrantoDario\Source.cpp(1045): warning C4715: 'boardPointer': no todas las rutas de acceso de control devuelven un valor
   ANALISIS_TM_TP6_OtrantoDario.vcxproj -> D:\Visual Studio\Batalla-Naval\ANALISIS_TM_TP6_OtrantoDario\x64\Debug\ANALISIS_TM_TP6_OtrantoDario.exe
